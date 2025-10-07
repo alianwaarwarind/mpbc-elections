@@ -7,14 +7,9 @@
     <!-- Load Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FIX: Use single ES Module import for React and ReactDOM -->
-    <script type="module">
-        import * as React from 'https://esm.sh/react@18';
-        import * as ReactDOM from 'https://esm.sh/react-dom@18/client';
-        // Make React and ReactDOM available globally for the Babel script
-        window.React = React;
-        window.ReactDOM = ReactDOM;
-    </script>
+    <!-- FIX: Revert to separate, globally exposed CDN links for maximum stability -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
     <!-- Load Babel/JSX transpiler last -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -43,7 +38,8 @@
     <!-- START OF REACT/BABEL SCRIPT BLOCK -->
     <script type="text/babel">
         // --- Core Application Logic and Components ---
-        const { useState, useMemo } = React;
+        // Access React/ReactDOM globals now available from CDN imports
+        const { useState, useMemo } = window.React;
         
         // --- Custom SVG Icons (Replacement for LucideReact) ---
 
@@ -326,8 +322,8 @@
         const getPath = (cx, cy, innerRadius, outerRadius, startAngle, endAngle) => {
           const start = { x: cx + outerRadius * Math.cos(startAngle), y: cy + outerRadius * Math.sin(startAngle) };
           const end = { x: cx + outerRadius * Math.cos(endAngle), y: cy + outerRadius * Math.sin(endAngle) };
-          const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.sin(startAngle) };
-          const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.sin(endAngle) };
+          const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.cos(startAngle) };
+          const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.cos(endAngle) };
           
           const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
           
@@ -873,6 +869,7 @@
                             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-lg flex flex-col">
                                 <h2 className="text-xl font-semibold mb-4 text-gray-700">
                                     Tehsil Electorate Power Ranking <span className="text-sm text-gray-400">(Click to view local votes)</span>
+                                
                                 </h2>
                                 <div className="flex-grow space-y-4 custom-scroll">
                                 {district.tehsils
@@ -1053,10 +1050,11 @@
             const checkAndRender = () => {
                 const rootElement = document.getElementById('root');
                 
+                // Check for all necessary global objects
                 if (typeof window.React !== 'undefined' && typeof window.ReactDOM !== 'undefined' && rootElement && typeof window.App !== 'undefined') {
                     try {
-                        const root = window.ReactDOM.createRoot(rootElement);
                         // Use React.createElement to safely render the globally exposed App component
+                        const root = window.ReactDOM.createRoot(rootElement);
                         root.render(window.React.createElement(window.App));
                     } catch (e) {
                         console.error("React rendering failed:", e);
