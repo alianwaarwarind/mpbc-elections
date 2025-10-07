@@ -322,7 +322,7 @@
         const getPath = (cx, cy, innerRadius, outerRadius, startAngle, endAngle) => {
           const start = { x: cx + outerRadius * Math.cos(startAngle), y: cy + outerRadius * Math.sin(startAngle) };
           const end = { x: cx + outerRadius * Math.cos(endAngle), y: cy + outerRadius * Math.sin(endAngle) };
-          // FIX: Donut path calculation was slightly wrong; used Math.cos(startAngle) for Y on inner start/end instead of Math.sin. Corrected below.
+          // FIX APPLIED HERE: Ensure correct sine/cosine usage for inner arc coordinates
           const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.sin(startAngle) };
           const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.sin(endAngle) };
           
@@ -343,7 +343,8 @@
           let currentAngle = -Math.PI / 2; // Start from top (-90 degrees)
           
           return (
-            <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="mx-auto">
+            // AMENDMENT: Use a fluid viewBox and let flex control sizing
+            <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="mx-auto max-w-[250px] max-h-[250px]">
               {data.map((entry, index) => {
                 if (entry.value === 0) return null;
 
