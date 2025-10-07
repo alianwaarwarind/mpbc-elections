@@ -322,8 +322,9 @@
         const getPath = (cx, cy, innerRadius, outerRadius, startAngle, endAngle) => {
           const start = { x: cx + outerRadius * Math.cos(startAngle), y: cy + outerRadius * Math.sin(startAngle) };
           const end = { x: cx + outerRadius * Math.cos(endAngle), y: cy + outerRadius * Math.sin(endAngle) };
-          const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.cos(startAngle) };
-          const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.cos(endAngle) };
+          // FIX: Donut path calculation was slightly wrong; used Math.cos(startAngle) for Y on inner start/end instead of Math.sin. Corrected below.
+          const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.sin(startAngle) };
+          const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.sin(endAngle) };
           
           const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
           
@@ -843,8 +844,8 @@
                                 ))}
                             </div>
 
-                            {/* New 2x2 Quick Summary Grid */}
-                            <div className="mt-8 grid grid-cols-2 gap-4 w-full">
+                            {/* New 2x2 Quick Summary Grid -> AMENDMENT HERE for mobile stacking */}
+                            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                             {summaryMetrics.map((entry, index) => (
                                 <div key={entry.name} className="p-3 rounded-lg flex flex-col shadow-md border" style={{ borderColor: entry.color, backgroundColor: `${entry.color}10` }}>
                                     <div className="flex items-center mb-1">
