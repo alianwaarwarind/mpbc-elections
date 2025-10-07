@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahawalpur Bar Council Election Dashboard</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FIX: Use single ES Module import for React and ReactDOM -->
+    <script type="module">
+        import * as React from 'https://esm.sh/react@18';
+        import * as ReactDOM from 'https://esm.sh/react-dom@18/client';
+        // Make React and ReactDOM available globally for the Babel script
+        window.React = React;
+        window.ReactDOM = ReactDOM;
+    </script>
+    
+    <!-- Load Babel/JSX transpiler last -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 antialiased">
+    <div id="root"></div>
+
+    <!-- START OF REACT/BABEL SCRIPT BLOCK -->
+    <script type="text/babel">
+        // --- Core Application Logic and Components ---
+        const { useState, useMemo } = React;
+        
+        // --- Custom SVG Icons (Replacement for LucideReact) ---
+
+        const IconProps = { className: "w-5 h-5", strokeWidth: 2, fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" };
+
+        const MapPin = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M12 10V3M12 21a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/>
+            </svg>
+        );
+
+        const X = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M18 6l-12 12M6 6l12 12"/>
+            </svg>
+        );
+
+        const Users = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87m-2-1.13a4 4 0 0 0-3-3.87"/>
+            </svg>
+        );
+
+        const Scale = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M16 16v-4m0 4h-4m-4 0v-4m0 4H4m0 0a8 8 0 1 0 16 0"/><circle cx="12" cy="7" r="2"/>
+            </svg>
+        );
+
+        const Briefcase = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+        );
+
+        const Landmark = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <line x1="12" y1="2" x2="12" y2="22"/><path d="M22 22h-4V11H6v11H2M8 11V7m8 4V7"/>
+            </svg>
+        );
+
+        const User = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+        );
+
+        const Trophy = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M6 9H4M18 9h2M10 21H8V3h8v18h-2M15 5h-6"/>
+            </svg>
+        );
+
+        const ChevronRight = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        );
+
+        const ArrowLeft = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        );
+
+        const View = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+        );
+
+        const BarChart = (props) => (
+            <svg {...IconProps} {...props} viewBox="0 0 24 24">
+                <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+            </svg>
+        );
+
+        // --- DATA DEFINITION ---
+
+        const RYK_CANDIDATES = [
+            'Akhtar Ali Mehmood Chahour', 
+            'Allah Yar Nadeem', 
+            'Ch. Muhammad Ramzan', 
+            'Muhammad Farooq Warind', 
+            'Muhammad Zahoor Hassan', 
+            'Rao Abdul Rauf Khan', 
+            'Sardar Abdul Basit Khan Baloch'
+        ].sort();
+
+        const BWP_CANDIDATES = [
+            'Diwan Abdul Rashid Bokhari',
+            'Hamid Akhtar',
+            'Muhammad Mukhtar Qazi',
+            'Muhammad Nasir Joiya',
+            'Muhammad Umair Mohsin',
+            'Sikander Hayat',
+            'Syed Faisal Abbas Shah',
+            'Syed Zeeshan Haider',
+            'Umar Mahmood'
+        ].sort();
+
+        const BWN_CANDIDATES = [
+            'Imran Hussain Chattha',
+            'M. Kashif Khan Khakwani',
+            'Mian Muhammad Imran',
+            'Muhammad Masood Ur Rashid'
+        ].sort();
+
+        // Helper to map candidates into the data structure with 0 votes
+        const mapCandidatesToTehsil = (candidateNames) => 
+            candidateNames.map(name => ({ name: name, votes: 0 }));
+
+        const DIVISION_DATA = [
+            {
+                id: 'bahawalpur',
+                name: 'Bahawalpur District',
+                totalVotes: 3031, // Consolidated Electorate Size (Total Registered Voters)
+                color: 'bg-emerald-600',
+                seats: 3, // Seats allocated to the district (for context, but contest is division-wide)
+                tehsils: [
+                    { name: 'Bahawalpur', lowerCourt: 335, highCourt: 1503, total: 1838, tehsilCandidates: mapCandidatesToTehsil(BWP_CANDIDATES) },
+                    { name: 'Ahmadpur East', lowerCourt: 84, highCourt: 430, total: 514, tehsilCandidates: mapCandidatesToTehsil(BWP_CANDIDATES) },
+                    { name: 'Hasilpur', lowerCourt: 94, highCourt: 249, total: 343, tehsilCandidates: mapCandidatesToTehsil(BWP_CANDIDATES) },
+                    { name: 'Yazman', lowerCourt: 44, highCourt: 190, total: 234, tehsilCandidates: mapCandidatesToTehsil(BWP_CANDIDATES) },
+                    { name: 'Khairpur Tamewali', lowerCourt: 21, highCourt: 81, total: 102, tehsilCandidates: mapCandidatesToTehsil(BWP_CANDIDATES) },
+                ],
+            },
+            {
+                id: 'rahimyar-khan',
+                name: 'Rahimyar Khan District',
+                totalVotes: 2627, // Consolidated Electorate Size (Total Registered Voters)
+                color: 'bg-indigo-600',
+                seats: 2, // Seats allocated to the district
+                tehsils: [
+                    { name: 'Rahim Yar Khan', lowerCourt: 301, highCourt: 850, total: 1151, tehsilCandidates: mapCandidatesToTehsil(RYK_CANDIDATES) },
+                    { name: 'Liaqatpur', lowerCourt: 120, highCourt: 385, total: 505, tehsilCandidates: mapCandidatesToTehsil(RYK_CANDIDATES) },
+                    { name: 'Sadiqabad', lowerCourt: 121, highCourt: 366, total: 487, tehsilCandidates: mapCandidatesToTehsil(RYK_CANDIDATES) },
+                    { name: 'Khanpur', lowerCourt: 164, highCourt: 320, total: 484, tehsilCandidates: mapCandidatesToTehsil(RYK_CANDIDATES) },
+                ],
+            },
+            {
+                id: 'bahawalnagar',
+                name: 'Bahawalnagar District',
+                totalVotes: 1877, // Consolidated Electorate Size (Total Registered Voters)
+                color: 'bg-orange-600',
+                seats: 1, // Seats allocated to the district
+                tehsils: [
+                    { name: 'Bahawalnagar', lowerCourt: 189, highCourt: 556, total: 745, tehsilCandidates: mapCandidatesToTehsil(BWN_CANDIDATES) },
+                    { name: 'Chishtian', lowerCourt: 135, highCourt: 298, total: 433, tehsilCandidates: mapCandidatesToTehsil(BWN_CANDIDATES) },
+                    { name: 'Minchinabad', lowerCourt: 95, highCourt: 209, total: 304, tehsilCandidates: mapCandidatesToTehsil(BWN_CANDIDATES) },
+                    { name: 'Haroonabad', lowerCourt: 70, highCourt: 172, total: 242, tehsilCandidates: mapCandidatesToTehsil(BWN_CANDIDATES) },
+                    { name: 'Fort Abbas', lowerCourt: 30, highCourt: 123, total: 153, tehsilCandidates: mapCandidatesToTehsil(BWN_CANDIDATES) },
+                ],
+            },
+        ];
+
+        // Calculate the maximum tehsil vote count for bar chart scaling
+        const MAX_TEHSIL_VOTES = DIVISION_DATA.flatMap(d => d.tehsils).reduce((max, tehsil) => Math.max(max, tehsil.total), 0);
+        const TOTAL_DIVISION_VOTES = DIVISION_DATA.reduce((sum, d) => sum + d.totalVotes, 0);
+
+        // Colors for the Donut Chart (Lower Court, High Court)
+        const COLORS = ['#059669', '#3b82f6']; 
+
+        /**
+         * Aggregates votes for all unique candidates across all tehsils in the entire division.
+         * Assigns an Originating District based on the first Tehsil encountered.
+         */
+        const getDivisionCandidatesAndTotals = () => {
+            const candidateMap = new Map();
+
+            DIVISION_DATA.forEach(district => {
+                district.tehsils.forEach(tehsil => {
+                    tehsil.tehsilCandidates.forEach(candidate => {
+                        const name = candidate.name;
+                        const currentData = candidateMap.get(name) || { 
+                            votes: 0, 
+                            originDistrictId: district.id, 
+                            originDistrictName: district.name,
+                        };
+
+                        currentData.votes += candidate.votes;
+
+                        candidateMap.set(name, currentData);
+                    });
+                });
+            });
+
+            return Array.from(candidateMap, ([name, data]) => ({
+                name,
+                votes: data.votes,
+                originDistrictId: data.originDistrictId,
+                originDistrictName: data.originDistrictName,
+                status: 'In Race',
+            })).sort((a, b) => b.votes - a.votes); // Sort by total division votes descending
+        };
+
+        /**
+         * Applies the HYBRID ALLOCATION LOGIC (District Seat Context Overrides Division Total).
+         */
+        const getHybridAllocationWinners = (allCandidates) => {
+            if (!allCandidates || allCandidates.length === 0) return [];
+
+            // 1. Group candidates by their originating district and sort them by total division votes
+            const candidatesByDistrict = {};
+            DIVISION_DATA.forEach(d => {
+                candidatesByDistrict[d.id] = {
+                    name: d.name,
+                    seats: d.seats,
+                    candidates: allCandidates
+                        .filter(c => c.originDistrictId === d.id)
+                        .sort((a, b) => b.votes - a.votes) // Sort descending by TOTAL DIVISION votes
+                };
+            });
+
+            const results = [];
+
+            // 2. Allocate reserved seats from each district pool
+            DIVISION_DATA.forEach(district => {
+                const districtData = candidatesByDistrict[district.id];
+                
+                districtData.candidates.forEach((candidate, index) => {
+                    const isWinner = index < districtData.seats;
+                    
+                    results.push({
+                        ...candidate,
+                        isHybridWinner: isWinner,
+                        rankInDistrict: index + 1,
+                        seatStatus: isWinner 
+                            ? `Winner (${districtData.name} Seat ${index + 1}/${districtData.seats})` 
+                            : `Defeated (Rank ${index + 1} - District cap reached)`,
+                        winnerRankClass: isWinner ? 'bg-green-600' : 'bg-gray-400',
+                    });
+                });
+            });
+            
+            // 3. Return the full list (sorted by total division votes for general context)
+            return results.sort((a, b) => b.votes - a.votes);
+        };
+
+        /**
+         * Calculates the vote distribution for a specific candidate across all tehsils in the division.
+         */
+        const getCandidateTehsilBreakdown = (candidateName, divisionData) => {
+            const breakdown = [];
+            let totalVotes = 0;
+
+            divisionData.forEach(district => {
+                district.tehsils.forEach(tehsil => {
+                    const candidateVoteEntry = tehsil.tehsilCandidates.find(c => c.name === candidateName);
+                    const votes = candidateVoteEntry ? candidateVoteEntry.votes : 0;
+                    totalVotes += votes;
+                    
+                    if (votes > 0) {
+                        breakdown.push({
+                            districtName: district.name,
+                            tehsilName: tehsil.name,
+                            votes: votes,
+                            colorClass: district.color.replace('bg-', 'text-'), 
+                            districtColorClass: district.color,
+                        });
+                    }
+                });
+            });
+
+            // Sort by votes descending
+            breakdown.sort((a, b) => b.votes - a.votes);
+            
+            return {
+                breakdown,
+                totalVotes,
+            };
+        };
+
+
+        // --- Chart Component (Native SVG Donut Chart) ---
+
+        /**
+         * Generates the SVG path data for a segment of a donut chart.
+         */
+        const getPath = (cx, cy, innerRadius, outerRadius, startAngle, endAngle) => {
+          const start = { x: cx + outerRadius * Math.cos(startAngle), y: cy + outerRadius * Math.sin(startAngle) };
+          const end = { x: cx + outerRadius * Math.cos(endAngle), y: cy + outerRadius * Math.sin(endAngle) };
+          const innerStart = { x: cx + innerRadius * Math.cos(startAngle), y: cy + innerRadius * Math.sin(startAngle) };
+          const innerEnd = { x: cx + innerRadius * Math.cos(endAngle), y: cy + innerRadius * Math.sin(endAngle) };
+          
+          const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
+          
+          return [
+            `M ${start.x} ${start.y}`, // Move to the outer arc start
+            `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`, // Outer arc
+            `L ${innerEnd.x} ${innerEnd.y}`, // Line to inner arc end
+            `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x} ${innerStart.y}`, // Inner arc
+            `Z` // Close path
+          ].join(' ');
+        };
+
+        const SvgDonutChart = ({ data, totalValue, width = 200, height = 200, innerRadius = 40, outerRadius = 70 }) => {
+          const cx = width / 2;
+          const cy = height / 2;
+          let currentAngle = -Math.PI / 2; // Start from top (-90 degrees)
+          
+          return (
+            <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="mx-auto">
+              {data.map((entry, index) => {
+                if (entry.value === 0) return null;
+
+                const percentage = totalValue > 0 ? entry.value / totalValue : 0;
+                const angle = percentage * 2 * Math.PI;
+                const startAngle = currentAngle;
+                const endAngle = currentAngle + angle;
+                currentAngle = endAngle;
+
+                const pathData = getPath(cx, cy, innerRadius, outerRadius, startAngle, endAngle);
+
+                return (
+                  <g key={index}>
+                    <path 
+                      d={pathData} 
+                      fill={entry.color} 
+                      className="transition-all duration-500 ease-out"
+                      // Add animation effect on hover
+                      onMouseOver={(e) => {
+                        e.target.setAttribute('opacity', 0.8);
+                        e.target.setAttribute('transform', 'scale(1.03)');
+                        e.target.setAttribute('transform-origin', `${cx} ${cy}`);
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.setAttribute('opacity', 1);
+                        e.target.setAttribute('transform', 'scale(1)');
+                      }}
+                    />
+                  </g>
+                );
+              })}
+              {/* Center Text (Total Value) */}
+              <text 
+                x={cx} 
+                y={cy} 
+                textAnchor="middle" 
+                dominantBaseline="middle" 
+                className="font-extrabold text-2xl" 
+                fill="#374151" // gray-700
+              >
+                {totalValue.toLocaleString()}
+              </text>
+              <text 
+                x={cx} 
+                y={cy + 20} 
+                textAnchor="middle" 
+                dominantBaseline="middle" 
+                className="font-medium text-xs uppercase" 
+                fill="#6b7280" // gray-500
+              >
+                Total
+              </text>
+            </svg>
+          );
+        };
+
+
+        // --- Helper Components ---
+
+        /**
+         * Visual bar for a single tehsil vote count.
+         */
+        const TehsilBar = ({ tehsil, maxVotes, colorClass, onClick, districtTotalVotes }) => {
+            const barWidth = (tehsil.total / maxVotes) * 100;
+            // Calculate the contribution percentage
+            const contributionPercentage = districtTotalVotes > 0 ? (tehsil.total / districtTotalVotes) * 100 : 0;
+          
+            return (
+              <div 
+                className="flex flex-col cursor-pointer p-2 -m-2 rounded-lg hover:bg-gray-100 transition duration-150"
+                onClick={() => onClick(tehsil)}
+              >
+                <div className="flex justify-between mb-1 items-center">
+                  <span className="text-sm font-medium text-gray-800 flex items-center">
+                    <BarChart className="w-4 h-4 mr-2 text-gray-400"/>
+                    {tehsil.name}
+                  </span>
+                  {/* Wrapper for percentage badge and total votes */}
+                  <div className="flex items-center space-x-3">
+                    {/* Tehsil Contribution Percentage Badge */}
+                    <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 shadow-inner">
+                        {contributionPercentage.toFixed(1)}%
+                    </span>
+                    <span className="text-sm font-bold text-gray-900">{tehsil.total.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full transition-all duration-700 ease-out ${colorClass}`}
+                    style={{ width: `${barWidth}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+        };
+
+        /**
+         * District Summary Card for the main view.
+         */
+        const DistrictCard = ({ district, setSelectedDistrict, isSelected }) => (
+            <div 
+              className={`p-5 rounded-xl shadow-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] border-4 ${district.color} ${isSelected ? 'border-gray-900 ring-4 ring-gray-400' : 'border-white hover:shadow-xl'}`}
+              onClick={() => setSelectedDistrict(district)}
+            >
+              <div className="flex items-start justify-between">
+                <h2 className="text-xl font-extrabold text-white leading-tight flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  {district.name}
+                </h2>
+                <span className="text-4xl font-extrabold text-white opacity-80">
+                  {district.seats}
+                </span>
+              </div>
+              <p className="text-xs text-white mt-1 opacity-90">
+                Total Electorate: {district.totalVotes.toLocaleString()} Voters
+              </p>
+              <p className="text-sm font-semibold text-white mt-4 flex items-center">
+                <Landmark className="w-4 h-4 mr-1 text-white opacity-80" />
+                {district.tehsils.length} Tehsils Included
+              </p>
+              <div className="mt-4 flex justify-end">
+                <button className="text-xs font-bold text-gray-900 bg-white px-3 py-1.5 rounded-full shadow-md hover:bg-gray-100 transition flex items-center">
+                  View Details
+                  <ChevronRight className="w-3 h-3 ml-1" />
+                </button>
+              </div>
+            </div>
+        );
+
+        /**
+         * Component to show candidate results within a specific Tehsil (Drill-down from DistrictDetails).
+         */
+        const TehsilCandidateResults = ({ tehsil, onBack }) => {
+            // Sort candidates by votes in this specific tehsil
+            // ALPHABETICAL SORTING USED HERE SINCE VOTES ARE ZERO
+            const sortedCandidates = tehsil.tehsilCandidates.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Calculate total votes polled in this tehsil
+            const totalTehsilVotesPolled = sortedCandidates.reduce((sum, c) => sum + c.votes, 0);
+
+            // --- EMPTY STATE CHECK ---
+            if (totalTehsilVotesPolled === 0) {
+                 return (
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-lg flex flex-col items-center justify-center h-full text-center">
+                        <button 
+                            onClick={onBack} 
+                            className="flex items-center text-indigo-600 hover:text-indigo-800 font-semibold mb-4 transition"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Tehsil Ranking
+                        </button>
+                        <BarChart className="w-12 h-12 text-gray-300 mb-3"/>
+                        <h2 className="text-xl font-extrabold text-gray-900">
+                            Results for: <span className="text-indigo-600">{tehsil.name}</span> Tehsil
+                        </h2>
+                        <p className="mt-3 p-4 text-center text-yellow-800 font-medium bg-yellow-50 rounded-lg border border-yellow-200">
+                            No votes have been recorded for any candidate in this Tehsil yet. Data will appear here once counting begins.
+                        </p>
+                    </div>
+                );
+            }
+
+
+            return (
+                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-lg flex flex-col">
+                    <button 
+                        onClick={onBack} 
+                        className="flex items-center text-indigo-600 hover:text-indigo-800 font-semibold mb-4 transition"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Tehsil Ranking
+                    </button>
+                    <h2 className="text-xl font-extrabold text-gray-900 border-b pb-2 mb-4">
+                        Results for: <span className="text-indigo-600">{tehsil.name}</span> Tehsil
+                    </h2>
+
+                    <div className="mb-4 p-3 bg-indigo-50 rounded-lg text-indigo-800">
+                        <p className="font-semibold">Total Votes Polled in Tehsil: {totalTehsilVotesPolled.toLocaleString()}</p>
+                        <p className="text-sm">Total Electorate Size: {tehsil.total.toLocaleString()}</p>
+                    </div>
+
+                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scroll">
+                        {sortedCandidates.map((candidate, index) => {
+                            const percentage = totalTehsilVotesPolled > 0 ? (candidate.votes / totalTehsilVotesPolled) * 100 : 0;
+                            
+                            return (
+                                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg shadow-sm border-l-4 border-indigo-400">
+                                    <div className="flex items-center">
+                                        <span className="font-extrabold text-lg w-6 flex-shrink-0 text-gray-700">{index + 1}.</span>
+                                        <span className="text-base font-semibold text-gray-900 ml-3">{candidate.name}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-4">
+                                        <span className="text-lg font-extrabold text-indigo-700">
+                                            {candidate.votes.toLocaleString()}
+                                        </span>
+                                        <span className="text-sm font-medium text-gray-600 bg-gray-200 px-2 py-0.5 rounded-full">
+                                            {percentage.toFixed(1)}%
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        /**
+         * Component to display the candidate rankings for a specific district's reserved seats.
+         */
+        const DistrictCandidateLeaderboard = ({ district, candidates, onSelectCandidateForBreakdown }) => {
+            // Filter candidates competing for this specific district's reserved seats
+            let districtCandidates = candidates.filter(c => c.originDistrictId === district.id);
+
+            // If votes are zero, sort alphabetically, otherwise sort by votes
+            const hasVotes = districtCandidates.some(c => c.votes > 0);
+
+            if (!hasVotes) {
+                // Alphabetical sort (since votes are 0)
+                districtCandidates.sort((a, b) => a.name.localeCompare(b.name));
+            }
+            // If there are votes, the candidates are already sorted by hybridWinners
+
+            // The old EMPTY STATE CHECK is removed. We use the fancy UI regardless.
+
+            return (
+                <div className="space-y-2 p-4 pt-0 bg-gray-50">
+                    {/* Only show the 'Results are pending' note above the list when votes are zero */}
+                    {!hasVotes && (
+                        <div className="p-3 mb-4 text-center bg-blue-100 rounded-lg border border-blue-200 text-blue-800">
+                            <p className="font-semibold">Results are pending. Candidates listed alphabetically.</p>
+                            <p className="text-xs mt-1">The official final ranking will appear here once votes are recorded.</p>
+                        </div>
+                    )}
+
+                    {districtCandidates.map((candidate, index) => {
+                        const isWinner = hasVotes && candidate.isHybridWinner;
+                        const rankIndicator = index + 1; // Rank within the district pool
+
+                        return (
+                            <div 
+                                key={index} 
+                                className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-white rounded-lg shadow-md border-l-4 border-gray-100 hover:shadow transition duration-200 group"
+                                // Highlight the card using green if they are a winner AND there are votes
+                                style={{ 
+                                    borderColor: isWinner ? '#059669' : '#9ca3af', // Green for winner, Gray for neutral/loser/pending
+                                    borderWidth: isWinner ? '3px' : '3px' // Make border thicker for winners
+                                }}
+                            >
+                                {/* Candidate Info & Rank */}
+                                <div className="flex items-center w-full md:w-1/3 mb-2 md:mb-0">
+                                    {/* Rank/Number (District Pool Rank) */}
+                                    <span className={`font-extrabold text-lg w-8 flex-shrink-0 text-left mr-3 ${isWinner ? 'text-green-600' : 'text-gray-500'}`}>
+                                        {rankIndicator}.
+                                    </span>
+                                    {/* Candidate Name */}
+                                    <p className="font-semibold text-gray-900 text-base">{candidate.name}</p>
+                                </div>
+                                
+                                {/* Vote Count and Status */}
+                                {/* AMENDMENT: Stack vote status and button for mobile */}
+                                <div className="flex items-center justify-between w-full md:w-2/3 md:space-x-4"> 
+                                    <div className="flex flex-col space-y-1 justify-start md:justify-center w-2/3">
+                                        {/* Status Tag */}
+                                        <span className={`text-xs font-bold w-full text-left px-2 py-0.5 rounded-full ${hasVotes ? (isWinner ? 'bg-green-500 text-white' : 'bg-red-200 text-red-800') : 'bg-gray-200 text-gray-500'}`}>
+                                            {hasVotes ? candidate.seatStatus : 'Status Pending'}
+                                        </span>
+                                        {/* Total Votes */}
+                                        <span className={`text-sm font-extrabold px-3 py-1 rounded-full shadow-inner transition mr-3 text-left ${hasVotes ? (isWinner ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700') : 'bg-gray-100 text-gray-400'}`}>
+                                            Votes: {hasVotes ? candidate.votes.toLocaleString() : '0'}
+                                        </span>
+                                    </div>
+
+                                    {/* Action Button (View Breakdown) */}
+                                    <div className="flex justify-end w-1/3">
+                                        <button
+                                            onClick={() => onSelectCandidateForBreakdown(candidate)}
+                                            className="px-3 py-1.5 bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-md hover:bg-indigo-600 transition duration-150 flex items-center"
+                                            title={`View detailed vote breakdown for ${candidate.name}`}
+                                        >
+                                            <View className="w-4 h-4 mr-1" />
+                                            View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        /**
+         * Modal/Panel to show the detailed tehsil-wise vote breakdown for a single candidate.
+         */
+        const CandidateVoteBreakdownModal = ({ candidate, divisionData, onClose }) => {
+            // Calculate the breakdown of votes across all tehsils
+            const { breakdown, totalVotes } = useMemo(() => 
+                getCandidateTehsilBreakdown(candidate.name, divisionData), 
+                [candidate.name, divisionData]
+            );
+            
+            // Check if any votes have been recorded for the entire division
+            const hasDivisionVotes = DIVISION_DATA.some(d => d.tehsils.some(t => t.tehsilCandidates.some(c => c.votes > 0)));
+
+            return (
+                // Simple fixed modal overlay
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        {/* Header */}
+                        <div className={`p-5 rounded-t-xl flex justify-between items-center bg-gray-800 text-white`}>
+                            <h1 className="text-xl md:text-2xl font-extrabold flex items-center">
+                                <User className="w-6 h-6 mr-3 text-yellow-400" />
+                                Breakdown: <span className="ml-2 text-yellow-300">{candidate.name}</span>
+                            </h1>
+                            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700 transition">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            <div className="mb-6 pb-4 border-b">
+                                <p className="text-lg text-gray-700 font-semibold mb-2">
+                                    Total Division Votes Secured: 
+                                    <span className="ml-2 text-2xl md:text-3xl font-extrabold text-indigo-600">
+                                        {totalVotes.toLocaleString()}
+                                    </span>
+                                </p>
+                                <p className="text-sm text-gray-500 italic">
+                                    These votes were secured across {breakdown.length} tehsils within the Bahawalpur Division.
+                                </p>
+                            </div>
+                            
+                            {!hasDivisionVotes ? (
+                                <div className="p-4 text-center text-yellow-800 font-medium bg-yellow-50 rounded-lg border border-yellow-200">
+                                    <p>Results are pending. This chart will show the Tehsil contribution once votes are recorded.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <h3 className="text-lg font-bold text-gray-800 mb-4">Tehsil-Wise Contributions (Highest to Lowest)</h3>
+                                    
+                                    <div className="space-y-3 max-h-80 overflow-y-auto pr-3 custom-scroll">
+                                        {breakdown.map((entry, index) => {
+                                            const percentage = totalVotes > 0 ? (entry.votes / totalVotes) * 100 : 0;
+                                            const barWidth = percentage > 0 ? Math.max(percentage, 1) : 0; // Ensure min 1% width if > 0
+                                            
+                                            return (
+                                                <div key={index} className="p-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <div className="flex flex-col sm:flex-row items-start sm:items-center">
+                                                            <span className={`text-sm font-bold ${entry.colorClass} flex-shrink-0 w-24 sm:w-32`}>
+                                                                {entry.districtName}
+                                                            </span>
+                                                            <span className="text-base font-semibold text-gray-900 ml-0 sm:ml-4">
+                                                                {entry.tehsilName}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2 sm:space-x-4 mt-2 sm:mt-0">
+                                                            <span className="text-xl font-extrabold text-indigo-700">
+                                                                {entry.votes.toLocaleString()}
+                                                            </span>
+                                                            <span className="text-sm font-medium text-gray-600 bg-gray-200 px-2 py-0.5 rounded-full">
+                                                                {percentage.toFixed(1)}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {/* Visual Bar */}
+                                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                                        <div
+                                                            className={`h-2 rounded-full transition-all duration-500 ease-out ${entry.districtColorClass}`}
+                                                            style={{ width: `${barWidth}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {breakdown.length === 0 && (
+                                        <div className="p-4 text-center text-yellow-800 font-medium bg-yellow-50 rounded-lg border border-yellow-200">
+                                            <p>This candidate has secured 0 votes across all Tehsils.</p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+
+        /**
+         * INLINE DETAIL VIEW 
+         */
+        const DistrictDetails = ({ district, onClose }) => {
+            // State to manage the tehsil drill-down
+            const [selectedTehsil, setSelectedTehsil] = useState(null);
+
+            // Calculate the total votes polled and turnout percentage
+            const { totalPolledVotes, turnoutPercentage } = useMemo(() => {
+                let polledVotes = 0;
+                
+                // Sum all votes from all tehsil candidates 
+                district.tehsils.forEach(tehsil => {
+                    tehsil.tehsilCandidates.forEach(candidate => {
+                        polledVotes += candidate.votes;
+                    });
+                });
+
+                const totalElectorate = district.totalVotes;
+                const turnout = totalElectorate > 0 ? (polledVotes / totalElectorate) * 100 : 0;
+                
+                return {
+                    totalPolledVotes: polledVotes,
+                    turnoutPercentage: turnout,
+                };
+            }, [district]);
+
+            // Prepare data for the voter type distribution chart
+            const voterSplit = useMemo(() => {
+                const lowerCourtTotal = district.tehsils.reduce((sum, t) => sum + t.lowerCourt, 0);
+                const highCourtTotal = district.tehsils.reduce((sum, t) => sum + t.highCourt, 0);
+            
+                return [
+                  { name: 'Lower Court Voters', value: lowerCourtTotal, icon: <Briefcase className="w-4 h-4 text-emerald-600" />, color: COLORS[0] },
+                  { name: 'High Court Voters', value: highCourtTotal, icon: <Landmark className="w-4 h-4 text-indigo-500" />, color: COLORS[1] },
+                ];
+            }, [district]);
+
+            const totalElectorateSize = district.totalVotes;
+            
+            // Combine all summary metrics into one array for the 2x2 grid display
+            const summaryMetrics = [
+                ...voterSplit, // High Court and Lower Court Electorate Size
+                { 
+                    name: 'Total Votes Polled', 
+                    value: totalPolledVotes, 
+                    icon: <Scale className="w-4 h-4 text-red-500" />, 
+                    color: '#ef4444', 
+                    isResult: true 
+                },
+                { 
+                    name: 'Voter Turnout %', 
+                    value: `${turnoutPercentage.toFixed(2)}%`, 
+                    icon: <Users className="w-4 h-4 text-sky-500" />, 
+                    color: '#0ea5e9', 
+                    isPercentage: true 
+                },
+            ];
+
+
+            return (
+                <div className={`mt-8 p-6 bg-white rounded-xl shadow-2xl border-t-8 ${district.color.replace('bg-', 'border-')} `}>
+                    {/* Details Header */}
+                    <div className={`p-4 rounded-xl flex justify-between items-center ${district.color} text-white mb-6`}>
+                        <h1 className="text-2xl md:text-3xl font-extrabold flex items-center">
+                            <ChevronRight className="w-7 h-7 mr-3" />
+                            District Demographics: {district.name}
+                        </h1>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-white hover:text-gray-900 transition flex items-center text-sm font-medium">
+                            Close <X className="w-5 h-5 ml-2" />
+                        </button>
+                    </div>
+
+                    {/* Note about Division Leaderboard */}
+                    <div className="p-3 mb-6 text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-lg font-medium">
+                        The final seat allocation is determined by the Hybrid Allocation System (District Cap) shown below.
+                    </div>
+
+                    {/* Charts and Rankings (Split Layout) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Column 1: Voter Split Chart & Summary Metrics */}
+                        <div className="bg-gray-50 p-5 rounded-xl shadow-inner flex flex-col items-center">
+                            <h2 className="text-xl font-semibold mb-4 text-gray-700">Electorate & Polling Summary</h2>
+                            <p className="text-sm text-gray-500 mb-6">Total Electorate Size: {district.totalVotes.toLocaleString()}</p>
+
+                            {/* Native SVG Donut Chart */}
+                            <div className="w-full h-64 mb-4 flex justify-center items-center relative">
+                                <SvgDonutChart 
+                                    data={voterSplit} 
+                                    totalValue={totalElectorateSize} 
+                                    width={250} 
+                                    height={250} 
+                                    innerRadius={60} 
+                                    outerRadius={100} 
+                                />
+                            </div>
+                            
+                            {/* Chart Legend */}
+                            <div className="flex justify-center space-x-6 mt-4">
+                                {voterSplit.map(entry => (
+                                    <div key={entry.name} className="flex items-center">
+                                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
+                                        <span className="text-xs font-medium text-gray-700">{entry.name.replace(' Voters', '')}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* New 2x2 Quick Summary Grid */}
+                            <div className="mt-8 grid grid-cols-2 gap-4 w-full">
+                            {summaryMetrics.map((entry, index) => (
+                                <div key={entry.name} className="p-3 rounded-lg flex flex-col shadow-md border" style={{ borderColor: entry.color, backgroundColor: `${entry.color}10` }}>
+                                    <div className="flex items-center mb-1">
+                                        {entry.icon}
+                                        <p className="text-xs text-gray-600 ml-2 font-medium uppercase tracking-wider">{entry.name.replace(' Voters', '')}</p>
+                                    </div>
+                                    <p className="text-xl font-extrabold" style={{ color: entry.color }}>
+                                        {entry.isPercentage ? entry.value : entry.value.toLocaleString()}
+                                    </p>
+                                </div>
+                            ))}
+                            </div>
+
+                        </div>
+
+                        {/* Column 2: Tehsil Breakdown (Bar Chart Simulation / Tehsil Candidate View) */}
+                        {selectedTehsil ? (
+                            // Display Candidate Results when a Tehsil is clicked
+                            <TehsilCandidateResults tehsil={selectedTehsil} onBack={() => setSelectedTehsil(null)} />
+                        ) : (
+                            // Display Tehsil Ranking by total votes initially
+                            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-lg flex flex-col">
+                                <h2 className="text-xl font-semibold mb-4 text-gray-700">
+                                    Tehsil Electorate Power Ranking <span className="text-sm text-gray-400">(Click to view local votes)</span>
+                                </h2>
+                                <div className="flex-grow space-y-4 custom-scroll">
+                                {district.tehsils
+                                    .sort((a, b) => b.total - a.total) 
+                                    .map((tehsil, index) => (
+                                    <TehsilBar
+                                        key={index}
+                                        tehsil={tehsil}
+                                        maxVotes={MAX_TEHSIL_VOTES}
+                                        colorClass={district.color}
+                                        onClick={setSelectedTehsil}
+                                        districtTotalVotes={district.totalVotes} // Pass the district total for percentage calculation
+                                    />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+
+        /**
+         * Main App Component
+         */
+        const App = () => {
+          const [selectedDistrict, setSelectedDistrict] = useState(null);
+          const [selectedCandidateForBreakdown, setSelectedCandidateForBreakdown] = useState(null);
+          const [expandedDistrictId, setExpandedDistrictId] = useState('rahimyar-khan'); // New state for accordion, defaulting to RYK
+
+          // 1. Calculate ALL candidates with their total votes and origin district
+          const allCandidates = useMemo(getDivisionCandidatesAndTotals, []);
+          
+          // 2. Apply the Hybrid Allocation logic to determine the 6 winners
+          const hybridWinners = useMemo(() => getHybridAllocationWinners(allCandidates), [allCandidates]);
+
+          // Handler to toggle the expanded district view in the accordion
+          const toggleExpandedDistrict = (districtId) => {
+            setExpandedDistrictId(prevId => prevId === districtId ? null : districtId);
+          };
+
+
+          return (
+            <div className="min-h-screen bg-gray-50 font-inter">
+              {/* Header */}
+              <header className="bg-white shadow-md">
+                <div className="max-w-6xl mx-auto p-6">
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">
+                    Member Punjab Bar Council Election, Bahawalpur Seat
+                  </h1>
+                  <p className="text-sm md:text-base text-gray-500 mt-1">
+                    Visualizing the electorate data for the Punjab Bar Council election.
+                  </p>
+                </div>
+                
+                {/* Patronage Bar in Header - Prominent and professional */}
+                <div className="bg-indigo-700 text-white py-3 px-6 shadow-xl">
+                    <p className="text-sm font-semibold text-center max-w-6xl mx-auto">
+                        This Election Dashboard has been made possible by the patronage of <span className="font-extrabold text-yellow-300">Muhammad Farooq Warind</span> - Candidate for MPBC (RYK) Seat
+                    </p>
+                </div>
+              </header>
+
+              {/* Main Content / "Map" */}
+              <main className="max-w-6xl mx-auto p-6">
+                
+                {/* Division Summary is at the top */}
+                <div className="mt-4 mb-6 p-5 bg-white rounded-xl shadow-lg border-t-4 border-gray-900">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-extrabold text-gray-900">Division Summary: Punjab Bar Council Election</h3>
+                        <span className="text-2xl font-extrabold text-indigo-600 flex items-center">
+                            <Trophy className="w-6 h-6 mr-1" /> Total Seats: 6
+                        </span>
+                    </div>
+                    <p className="text-gray-600">
+                        The Bahawalpur Division has a consolidated total of <span className="font-bold text-gray-900">{TOTAL_DIVISION_VOTES.toLocaleString()}</span> Bar Council Voters across 14 Tehsils. The contest uses a Hybrid Allocation system based on reserved district seats.
+                    </p>
+                </div>
+                
+                {/* District Cards (Clicking one shows the details below) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {DIVISION_DATA.map(district => (
+                    <DistrictCard
+                      key={district.id}
+                      district={district}
+                      setSelectedDistrict={setSelectedDistrict}
+                      isSelected={selectedDistrict && selectedDistrict.id === district.id}
+                    />
+                  ))}
+                </div>
+                
+                {/* NEW POSITION: Inline Details View (District Demographics) */}
+                {selectedDistrict && (
+                    <DistrictDetails
+                        district={selectedDistrict}
+                        onClose={() => setSelectedDistrict(null)}
+                    />
+                )}
+
+                {/* District-Specific Leaderboard Accordion (Seat Allocation) */}
+                <div className="mt-8 p-6 bg-white rounded-xl shadow-2xl border-t-8 border-gray-900">
+                    <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-4 flex items-center border-b pb-4">
+                        <Trophy className="w-7 h-7 mr-3 text-red-600" />
+                        Seat Allocation & Candidate Ranking (Hybrid System)
+                    </h2>
+                    <p className="text-sm text-gray-700 mb-6 bg-red-50 p-3 rounded-lg border border-red-200">
+                        <span className="font-bold text-red-800">Key Logic:</span> Candidates are ranked within their originating district's seat pool based on their total votes secured across the ENTIRE Bahawalpur Division. Click a district below to see its candidates.
+                    </p>
+
+                    <div className="space-y-4">
+                        {DIVISION_DATA.map((district) => (
+                            <div key={district.id} className="border border-gray-200 rounded-xl overflow-hidden shadow-md">
+                                {/* Accordion Header */}
+                                <div 
+                                    className={`p-4 cursor-pointer flex justify-between items-center transition duration-300 ${expandedDistrictId === district.id ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                                    onClick={() => toggleExpandedDistrict(district.id)}
+                                >
+                                    <h3 className="text-lg md:text-xl font-extrabold flex items-center">
+                                        <MapPin className="w-5 h-5 mr-3" />
+                                        {district.name} Candidates ({district.seats} Seats)
+                                    </h3>
+                                    <ChevronRight 
+                                        className={`w-5 h-5 transition-transform duration-300 ${expandedDistrictId === district.id ? 'transform rotate-90 text-yellow-400' : 'text-gray-500'}`}
+                                    />
+                                </div>
+
+                                {/* Accordion Content */}
+                                {expandedDistrictId === district.id && (
+                                    <DistrictCandidateLeaderboard
+                                        district={district}
+                                        candidates={hybridWinners}
+                                        onSelectCandidateForBreakdown={setSelectedCandidateForBreakdown}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Candidate Vote Breakdown Modal */}
+                {selectedCandidateForBreakdown && (
+                    <CandidateVoteBreakdownModal
+                        candidate={selectedCandidateForBreakdown}
+                        divisionData={DIVISION_DATA}
+                        onClose={() => setSelectedCandidateForBreakdown(null)}
+                    />
+                )}
+              </main>
+              
+              {/* Footer (NEW ADDITION) */}
+              <footer className="bg-gray-800 text-white p-4 mt-12 shadow-inner">
+                <div className="max-w-6xl mx-auto flex flex-col items-center">
+                  <p className="text-xs text-center font-medium mb-1">
+                    This Election Dashboard has been made possible by the patronage of <span className="font-bold text-yellow-300">Muhammad Farooq Warind</span> - Candidate for MPBC (RYK) Seat.
+                  </p>
+                  <p className="text-xs text-center font-light mt-1">
+                    Made with love by <span className="font-semibold text-indigo-400">Ali Anwaar</span>
+                  </p>
+                  <p className="text-xs text-center font-light italic mt-1">
+                    Data is for illustrative purposes only.
+                  </p>
+                </div>
+              </footer>
+            </div>
+          );
+        };
+
+        // Expose App globally after definition inside Babel script for the final render block
+        window.App = App;
+
+    </script>
+    
+    <!-- Final Rendering Block -->
+    <script>
+        // Use window.onload to wait for all resources (ES Modules, Babel, DOM)
+        window.onload = function() {
+            const checkAndRender = () => {
+                const rootElement = document.getElementById('root');
+                
+                if (typeof window.React !== 'undefined' && typeof window.ReactDOM !== 'undefined' && rootElement && typeof window.App !== 'undefined') {
+                    try {
+                        const root = window.ReactDOM.createRoot(rootElement);
+                        // Use React.createElement to safely render the globally exposed App component
+                        root.render(window.React.createElement(window.App));
+                    } catch (e) {
+                        console.error("React rendering failed:", e);
+                    }
+                } else {
+                    // If not ready, poll again
+                    setTimeout(checkAndRender, 50); 
+                }
+            };
+
+            // Start the polling process
+            checkAndRender();
+        };
+    </script>
+</body>
+</html>
