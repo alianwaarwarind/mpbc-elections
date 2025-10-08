@@ -903,7 +903,7 @@
         const App = () => {
           const [selectedDistrict, setSelectedDistrict] = useState(null);
           const [selectedCandidateForBreakdown, setSelectedCandidateForBreakdown] = useState(null);
-          const [expandedDistrictId, setExpandedDistrictId] = useState('rahimyar-khan'); // New state for accordion, defaulting to RYK
+          const [expandedDistrictId, setExpandedDistrictId] = useState('null'); // New state for accordion, defaulting to RYK
 
           // 1. Calculate ALL candidates with their total votes and origin district
           const allCandidates = useMemo(getDivisionCandidatesAndTotals, []);
