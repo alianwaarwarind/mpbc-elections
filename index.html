@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Punjab Bar Council Election, Bahawalpur Seat</title>
+    <title>Bahawalpur Bar Council Election Dashboard</title>
     <!-- Load Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -132,8 +132,8 @@
         const BWP_CANDIDATES = [
             'Diwan Abdul Rashid Bokhari',
             'Hamid Akhtar',
-            'Haji Muhammad Afzal Dharala', // NEW CANDIDATE 1
-            'M. Moazzam Kamal Vaince', // NEW CANDIDATE 2
+            'Haji Muhammad Afzal Dharala', 
+            'M. Moazzam Kamal Vaince', 
             'Muhammad Mukhtar Qazi',
             'Muhammad Nasir Joiya',
             'Muhammad Umair Mohsin',
@@ -144,11 +144,12 @@
         ].sort();
 
         const BWN_CANDIDATES = [
+            'Ghulam Nabi Sipra', // NEW CANDIDATE ADDED
             'Imran Hussain Chattha',
             'M. Kashif Khan Khakwani',
             'Mian Muhammad Imran',
             'Muhammad Masood Ur Rashid'
-        ].sort();
+        ].sort(); // Re-sorted alphabetically
 
         // Helper to map candidates into the data structure with 0 votes
         const mapCandidatesToTehsil = (candidateNames) => 
@@ -903,8 +904,8 @@
         const App = () => {
           const [selectedDistrict, setSelectedDistrict] = useState(null);
           const [selectedCandidateForBreakdown, setSelectedCandidateForBreakdown] = useState(null);
-          const [expandedDistrictId, setExpandedDistrictId] = useState('null'); // New state for accordion, defaulting to RYK
-
+          const [expandedDistrictId, setExpandedDistrictId] = useState(null); // FIX: Changed default to null
+          
           // 1. Calculate ALL candidates with their total votes and origin district
           const allCandidates = useMemo(getDivisionCandidatesAndTotals, []);
           
