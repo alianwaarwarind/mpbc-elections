@@ -144,12 +144,12 @@
         ].sort();
 
         const BWN_CANDIDATES = [
-            'Ghulam Nabi Sipra', // NEW CANDIDATE ADDED
+            'Ghulam Nabi Sipra', 
             'Imran Hussain Chattha',
             'M. Kashif Khan Khakwani',
             'Mian Muhammad Imran',
             'Muhammad Masood Ur Rashid'
-        ].sort(); // Re-sorted alphabetically
+        ].sort(); 
 
         // Helper to map candidates into the data structure with 0 votes
         const mapCandidatesToTehsil = (candidateNames) => 
@@ -1031,8 +1031,9 @@
                   <p className="text-xs text-center font-medium mb-1">
                     This Election Dashboard has been made possible by the patronage of <span className="font-bold text-yellow-300">Muhammad Farooq Warind</span> - Candidate for MPBC (RYK) Seat.
                   </p>
+                  {/* FIX: Linked Ali Anwaar to GitHub Portfolio */}
                   <p className="text-xs text-center font-light mt-1">
-                    Made with love by <span className="font-semibold text-indigo-400">Ali Anwaar</span>
+                    Made with love by <a href="https://alianwaarwarind.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-400 hover:text-indigo-300 transition duration-150">Ali Anwaar</a>
                   </p>
                   <p className="text-xs text-center font-light italic mt-1">
                     Data is for illustrative purposes only.
