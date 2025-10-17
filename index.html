@@ -120,36 +120,36 @@
         // --- DATA DEFINITION ---
 
         const RYK_CANDIDATES = [
-            'Akhtar Ali Mehmood Chahour', 
-            'Allah Yar Nadeem', 
-            'Ch. Muhammad Ramzan', 
-            'Muhammad Farooq Warind', 
-            'Muhammad Zahoor Hassan', 
-            'Rao Abdul Rauf Khan', 
-            'Sardar Abdul Basit Khan Baloch'
-        ].sort();
+            'Sardar Abdul Basit Khan Baloch', // Sr. 1
+            'Rao Abdul Rauf Khan',            // Sr. 2
+            'Akhtar Ali Mehmood Chahour',     // Sr. 3
+            'Mehar Allah Yar Sipra',          // Sr. 4
+            'Muhammad Farooq Warind',         // Sr. 5
+            'Ch. Muhammad Ramzan Shama',      // Sr. 6
+            'Muhammad Zahoor Hassan'          // Sr. 7
+        ]; // REMOVED .sort()
 
         const BWP_CANDIDATES = [
-            'Diwan Abdul Rashid Bokhari',
-            'Hamid Akhtar',
-            'Haji Muhammad Afzal Dharala', 
-            'M. Moazzam Kamal Vaince', 
-            'Muhammad Mukhtar Qazi',
-            'Muhammad Nasir Joiya',
-            'Muhammad Umair Mohsin',
-            'Sikander Hayat',
-            'Syed Faisal Abbas Shah',
-            'Syed Zeeshan Haider',
-            'Umar Mahmood'
-        ].sort();
+            'Diwan Abdul Rashid Bokhari',     // Sr. 1
+            'Hamid Akhtar',                   // Sr. 2
+            'Haji Muhammad Afzal Dharala',    // Sr. 3
+            'M. Moazzam Kamal Wains',         // Sr. 4
+            'Muhammad Mukhtar Qazi',          // Sr. 5
+            'Muhammad Nasir Joiya',           // Sr. 6
+            'Muhammad Umair Mohsin',          // Sr. 7
+            'Sikander Hayat Nangaana',        // Sr. 8
+            'Syed Faisal Abbas Shah',         // Sr. 9
+            'Syed Zeeshan Haider',            // Sr. 10
+            'Ch. Umar Mahmood'                // Sr. 11
+        ]; // REMOVED .sort()
 
         const BWN_CANDIDATES = [
-            'Ghulam Nabi Sipra', 
-            'Imran Hussain Chattha',
-            'M. Kashif Khan Khakwani',
-            'Mian Muhammad Imran',
-            'Muhammad Masood Ur Rashid'
-        ].sort(); 
+            'Ghulam Nabi Sipra',              // Sr. 1
+            'Imran Hussain Chatha',           // Sr. 2
+            'Mian Muhammad Imran',            // Sr. 3
+            'M. Kashif Khan Khakwani',        // Sr. 4
+            'M. Masood ur Rashid Joiya'       // Sr. 5
+        ]; // REMOVED .sort() 
 
         // Helper to map candidates into the data structure with 0 votes
         const mapCandidatesToTehsil = (candidateNames) => 
@@ -566,8 +566,9 @@
             const hasVotes = districtCandidates.some(c => c.votes > 0);
 
             if (!hasVotes) {
-                // Alphabetical sort (since votes are 0)
-                districtCandidates.sort((a, b) => a.name.localeCompare(b.name));
+                // When no votes exist, we do *not* sort alphabetically; we rely on the serial order 
+                // provided in the source arrays (RYK_CANDIDATES, etc.).
+                // The list is already ordered by the natural array index, which matches the serial number.
             }
             // If there are votes, the candidates are already sorted by hybridWinners
 
@@ -578,7 +579,7 @@
                     {/* Only show the 'Results are pending' note above the list when votes are zero */}
                     {!hasVotes && (
                         <div className="p-3 mb-4 text-center bg-blue-100 rounded-lg border border-blue-200 text-blue-800">
-                            <p className="font-semibold">Results are pending. Candidates listed alphabetically.</p>
+                            <p className="font-semibold">Results are pending. Candidates listed by official serial order.</p>
                             <p className="text-xs mt-1">The official final ranking will appear here once votes are recorded.</p>
                         </div>
                     )}
