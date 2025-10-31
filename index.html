@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Punjab Bar Council (Bahawalpur Division) Election Dashboard</title>
+    <title>Bahawalpur Bar Council Election Dashboard</title>
     <!-- Load Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -31,6 +31,17 @@
             background: #555;
         }
     </style>
+
+    <!-- GOOGLE ANALYTICS TRACKING CODE -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FDKQD68W6N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-FDKQD68W6N');
+    </script>
+    <!-- END GOOGLE ANALYTICS TRACKING CODE -->
 </head>
 <body class="bg-gray-50 antialiased">
     <div id="root"></div>
@@ -263,6 +274,7 @@
             DIVISION_DATA.forEach(district => {
                 const districtData = candidatesByDistrict[district.id];
                 
+                // When votes are zero, this list is in serial order. Allocation should respect that order.
                 districtData.candidates.forEach((candidate, index) => {
                     const isWinner = index < districtData.seats;
                     
